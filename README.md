@@ -10,7 +10,8 @@ switches, flashable with [LibreTiny](https://github.com/libretiny-eu/libretiny).
 > same target — LibreTiny board `generic-bk7231n-qfn32-tuya`. Built and tested
 > on a real CB3S-based 4-gang switch.
 
-![host-tests](https://github.com/USER/REPO/actions/workflows/host-tests.yml/badge.svg)
+
+![host-tests](https://github.com/janithcbk123/LibreSwitch/actions/workflows/host-tests.yml/badge.svg)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 ![platform](https://img.shields.io/badge/platform-LibreTiny%20%7C%20CB3S%20%2F%20BK7231N-green)
 
