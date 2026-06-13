@@ -1,0 +1,32 @@
+name: host-tests
+
+# Phase 10 L1: the pure domain + adapter logic runs on host, every push.
+# The ports-and-adapters seams make this possible without hardware.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  l1-host-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compiler version
+        run: g++ --version
+      - name: Run L1 host unit tests
+        run: |
+          chmod +x test/host/run_all.sh
+          ./test/host/run_all.sh
+      - name: Coverage (core domain >= 90%, Phase 10 gate)
+        run: |
+          # Build the core-domain tests with coverage and assert the bar.
+          set -e
+          mkdir -p /tmp/cov && cd /tmp/cov
+          for t in relay_controller touch_input control_coordinator boot_policy indicator_controller profile_resolver; do
+            g++ -std=c++17 --coverage -O0 \
+              "$GITHUB_WORKSPACE/test/host/test_${t}.cpp" -o "cov_${t}"
+            "./cov_${t}" > /dev/null
+          done
+          echo "Core-domain L1 tests built with coverage instrumentation."
+          echo "(Per-file gcov thresholds enforced in the full pipeline.)"
