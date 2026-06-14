@@ -77,6 +77,18 @@
 
 namespace ss {
 
+// Bootstrap trust anchor for the R-19 enrollment server (Option B). PIN the
+// enrollment endpoint by defining its CA, e.g. in platformio.ini:
+//   -D ENROLL_URL='"https://enroll.example.com/v1/enroll"'
+//   -D ENROLL_CA_PEM='R"(-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----\n)"'
+// With ENROLL_URL set, HttpEnrollment replaces the dev stand-in. Without a
+// pinned CA it refuses to send the token unless -D ENROLL_INSECURE (dev only).
+#if defined(ENROLL_CA_PEM)
+static constexpr const char* kEnrollCa = ENROLL_CA_PEM;
+#else
+static constexpr const char* kEnrollCa = "";
+#endif
+
 // Minimal factory-reset handler for the local plane. (Full reset wipes
 // creds + reprovisions — that lands with the connectivity layer; here we
 // at least surface the gesture and stage indicator feedback.)
@@ -222,7 +234,7 @@ public:
                 Serial1.print(apSsid_);
                 Serial1.print(" pass=");
                 Serial1.print(apPass_);
-                Serial1.println("  → http://192.168.4.1");
+                Serial1.println("  → http://192.168.43.1");
             }
         }
         prov_->tick(now);
@@ -255,6 +267,17 @@ public:
     bool seedProfileId(uint8_t id) {
         if (!kv_.begin("kvs")) return false;       // same path as begin()
         return kv_.setBlob("profile_id", &id, sizeof(id));
+    }
+
+    // ---- ONE-TIME BRING-UP SEED (enrollment token) ----
+    // Factory-injects the one-time R-19 token so the installer enters only
+    // Wi-Fi creds at the portal — HttpEnrollment falls back to this seeded
+    // token when the form leaves it blank. Mirror of seedProfileId; remove
+    // the -D after the first boot writes it.
+    bool seedEnrollToken(const char* tok) {
+        if (!tok || !*tok) return false;
+        if (!kv_.begin("kvs")) return false;
+        return kv_.setBlob("enroll_token", tok, strlen(tok));
     }
 
     Scheduler& scheduler() { return sched_; }
@@ -338,7 +361,20 @@ private:
         lt_get_device_mac(mac);
         snprintf(apSsid_, sizeof(apSsid_), "Switch-%02X%02X", mac[4], mac[5]);
         snprintf(apPass_, sizeof(apPass_), "sw-%02X%02X%02X", mac[3], mac[4], mac[5]);
-        enroll_.emplace(kv_);                        // R-19 dev enrollment
+        snprintf(deviceHint_, sizeof(deviceHint_), "%02X%02X%02X%02X%02X%02X",
+                 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);   // id sent to enrollment
+#if defined(ENROLL_URL)
+        // R-19 Option B: real token→identity exchange over server-auth TLS.
+        httpEnroll_.emplace(kv_, ENROLL_URL, kEnrollCa,
+                            profile_->hwCompatFamily, deviceHint_);
+        enroll_ = &*httpEnroll_;
+        Serial1.println("[net] enrollment = HTTP (token → backend identity)");
+#else
+        devEnroll_.emplace(kv_);                     // R-19 dev stand-in (no backend)
+        enroll_ = &*devEnroll_;
+        Serial1.println("[net] enrollment = DEV stand-in "
+                        "(set -D ENROLL_URL to enable real enrollment)");
+#endif
         ProvConfig cfg{ apSsid_, apPass_ };
         prov_.emplace(wifiCtl_, portal_, *enroll_, kv_, cfg);
     }
@@ -461,10 +497,16 @@ private:
     // --- provisioning (Phase 7) ---
     LibreTinyWifiControl   wifiCtl_;
     LibreTinyPortalServer  portal_;
-    slot<KvsDevEnrollment> enroll_;
+#if defined(ENROLL_URL)
+    slot<HttpEnrollment>   httpEnroll_;       // R-19 Option B (real exchange)
+#else
+    slot<KvsDevEnrollment> devEnroll_;        // R-19 dev stand-in
+#endif
+    Enrollment*            enroll_ = nullptr; // → whichever impl is active
     slot<ProvisioningService> prov_;
     char apSsid_[24] = {};
     char apPass_[24] = {};
+    char deviceHint_[13] = {};                // MAC hex, sent to enrollment
     bool provBegun_ = false;
     bool wifiOperational_ = false;
 

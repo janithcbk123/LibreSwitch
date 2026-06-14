@@ -90,6 +90,18 @@ void setup() {
                     "(add -D SEED_PROFILE_ID=4 to platformio.ini build_flags to seed)");
 #endif
 
+#if defined(SEED_ENROLL_TOKEN)
+    // One-time R-19 token injection (Option B): factory-seed the enrollment
+    // token so the installer enters only Wi-Fi at the portal. Build once with
+    //   -D SEED_ENROLL_TOKEN='"<token>"'   then REMOVE it and reflash.
+    {
+        const bool ok = s_app.seedEnrollToken(SEED_ENROLL_TOKEN);
+        Serial1.print("[seed] enroll_token ");
+        Serial1.println(ok ? "written OK (remove -D SEED_ENROLL_TOKEN and reflash)"
+                           : "WRITE FAILED");
+    }
+#endif
+
     if (!s_app.begin()) {
         // Fatal bring-up failure (e.g. unknown profile, FlashDB bind
         // failed). Halt safely — relays were driven OFF at adapter begin()
