@@ -50,9 +50,9 @@ These switches don't break TX/RX out to a header, so the first install is a one-
 | 3V3 | **3V3** (or external 3.3 V) |
 | *(reset)* | **CEN** - momentarily bridge to GND to reboot into download mode |
 
-<!-- Photo of the exact CB3S pads used. Add the image at docs/img/cb3s-flashing.jpg and uncomment:
-![CB3S UART flashing pads](docs/img/cb3s-flashing.jpg) -->
-_(Photo of the exact pads used: to be added.)_
+![UART flashing wiring: 3.3 V USB-UART adapter to a CB3S module - crossed TX/RX, shared 3V3 and GND, and a momentary CEN-to-GND bridge for download mode](docs/img/cb3s-flashing.svg)
+
+_A photo of the exact pads on a real unit is still a welcome contribution - see CONTRIBUTING.md._
 
 **Steps**
 1. Wire as above. Double-check GND and that you're on **3.3 V, not 5 V**.
@@ -94,6 +94,14 @@ src/
   main.cpp    entry: boot local plane, spawn Control task (+ Mqtt if provisioned)
 test/host/    L1 host unit tests (no hardware) - run on every commit
 ```
+
+## Pin map
+
+![CB3S / BK7231N pin map: relays on GPIO6/8/9/26, touch pads on GPIO24/20/7/14, status LED on GPIO22, backlight on GPIO23, UART1 flash/log on GPIO10/11](docs/img/cb3s-pinout.svg)
+
+Confirmed on hardware. Touch _n_ drives relay _n_; every pin is build-flag
+overridable (see [Build-flag reference](#build-flag-reference)). Don't enable
+I2C1/SPI0 - they would steal GPIO20 and GPIO14 (R-31).
 
 ## Build, test, flash
 
