@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 600" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <style>
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .pin  { font-size: 14px; font-weight: 600; fill: #0f172a; }
+      .pinm { font-size: 12px; fill: #475569; }
+      .lbl  { font-size: 13px; fill: #334155; }
+      .wire { stroke-width: 4; fill: none; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect width="920" height="600" fill="#ffffff"/>
+
+  <!-- header -->
+  <rect width="920" height="58" fill="#0f2a43"/>
+  <text x="28" y="36" font-size="20" font-weight="700" fill="#ffffff">UART flashing &#8212; CB3S / BK7231N</text>
+  <text x="892" y="36" font-size="13" fill="#9fc0e0" text-anchor="end" class="mono">LibreSwitch &#183; first install</text>
+
+  <!-- adapter box -->
+  <rect x="70" y="130" width="250" height="320" rx="12" fill="#f1f5f9" stroke="#2b4a6f" stroke-width="2"/>
+  <text x="195" y="162" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">USB&#8211;UART adapter</text>
+  <text x="195" y="182" text-anchor="middle" font-size="12" fill="#dc2626" font-weight="700">3.3 V logic only</text>
+
+  <!-- module box -->
+  <rect x="600" y="130" width="250" height="320" rx="12" fill="#f1f5f9" stroke="#2b4a6f" stroke-width="2"/>
+  <text x="725" y="162" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">CB3S module</text>
+  <text x="725" y="182" text-anchor="middle" font-size="12" fill="#475569">(BK7231N)</text>
+
+  <!-- wires (drawn before pads so pads sit on top) -->
+  <!-- 3V3 -->
+  <path class="wire" d="M320 230 H600" stroke="#dc2626"/>
+  <!-- GND -->
+  <path class="wire" d="M320 410 H600" stroke="#475569"/>
+  <!-- TX -> RX1 (crossed) -->
+  <path class="wire" d="M320 290 C 440 290, 480 350, 600 350" stroke="#16a34a"/>
+  <!-- RX -> TX1 (crossed) -->
+  <path class="wire" d="M320 350 C 440 350, 480 290, 600 290" stroke="#2563eb"/>
+  <!-- cross marker -->
+  <text x="460" y="316" text-anchor="middle" font-size="12" fill="#64748b" font-weight="700">&#10005; crossed</text>
+  <!-- CEN -> GND momentary -->
+  <path class="wire" stroke="#7c3aed" stroke-dasharray="3 6" d="M600 470 C 520 470, 500 410, 470 410"/>
+  <text x="515" y="393" text-anchor="middle" font-size="12" fill="#7c3aed" font-weight="700">tap CEN&#8594;GND = download mode</text>
+
+  <!-- adapter pins (right edge x=320) -->
+  <g>
+    <circle cx="320" cy="230" r="7" fill="#dc2626"/><text x="306" y="235" text-anchor="end" class="pin">3V3</text>
+    <circle cx="320" cy="290" r="7" fill="#16a34a"/><text x="306" y="295" text-anchor="end" class="pin">TX</text>
+    <circle cx="320" cy="350" r="7" fill="#2563eb"/><text x="306" y="355" text-anchor="end" class="pin">RX</text>
+    <circle cx="320" cy="410" r="7" fill="#475569"/><text x="306" y="415" text-anchor="end" class="pin">GND</text>
+  </g>
+
+  <!-- module pads (left edge x=600) -->
+  <g>
+    <circle cx="600" cy="230" r="7" fill="#dc2626"/>
+    <text x="614" y="227" class="pin">3V3</text>
+    <circle cx="600" cy="290" r="7" fill="#2563eb"/>
+    <text x="614" y="287" class="pin">TX1</text><text x="614" y="303" class="pinm mono">P11 / GPIO11</text>
+    <circle cx="600" cy="350" r="7" fill="#16a34a"/>
+    <text x="614" y="347" class="pin">RX1</text><text x="614" y="363" class="pinm mono">P10 / GPIO10</text>
+    <circle cx="600" cy="410" r="7" fill="#475569"/>
+    <text x="614" y="415" class="pin">GND</text>
+    <circle cx="600" cy="470" r="7" fill="#7c3aed"/>
+    <text x="614" y="467" class="pin">CEN</text><text x="614" y="483" class="pinm">reset</text>
+  </g>
+
+  <!-- callouts -->
+  <g>
+    <rect x="70" y="492" width="780" height="86" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="86" y="516" class="lbl" font-weight="700" fill="#9a3412">Before you write:</text>
+    <text x="86" y="538" class="lbl">&#9888; 3.3 V only &#8212; never apply 5 V. All BK7231N I/O is 3.3 V; a weak adapter rail sags mid-flash (the #1 failure).</text>
+    <text x="86" y="558" class="lbl">In ltchiptool pick <tspan class="mono" font-weight="700">BK7231N</tspan> &#8212; NOT BK7231T (choosing T can brick an N).</text>
+    <text x="86" y="574" class="lbl">Start the write, then briefly bridge <tspan class="mono" font-weight="700">CEN&#8594;GND</tspan> while it says &#8220;connecting.&#8221;</text>
+  </g>
+</svg>
